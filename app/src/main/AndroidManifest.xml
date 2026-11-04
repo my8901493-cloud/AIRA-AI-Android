@@ -2,33 +2,44 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-    <!-- Audio & Voice Permissions (Requested on demand with clear rationale) -->
+    <!-- Audio & Voice Permissions -->
     <uses-permission android:name="android.permission.RECORD_AUDIO" />
     <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
 
-    <!-- Network & Offline State Detection -->
+    <!-- Network, Wi-Fi & Bluetooth Hardware Controls -->
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
+    <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.ACCESS_NOTIFICATION_POLICY" />
+
+    <!-- Floating Live Operator Overlay HUD Permission -->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
 
     <!-- Assistant Alarms, Timers & Reminders -->
     <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
-    <!-- Foreground Services for Voice & Optional Screen Assistant -->
+    <!-- Foreground Services for Voice, Overlay & Screen Assistant -->
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MICROPHONE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PROJECTION" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
 
     <!-- Package Visibility for App Discovery & App Launcher -->
     <uses-permission
         android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
-    <!-- Optional Camera Support -->
+    <!-- Camera & Flashlight/Torch Support -->
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-feature
         android:name="android.hardware.camera"
+        android:required="false" />
+    <uses-feature
+        android:name="android.hardware.camera.flash"
         android:required="false" />
     <uses-feature
         android:name="android.hardware.microphone"
@@ -56,13 +67,14 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
 
-            <!-- Digital Assistant Role Support -->
+            <!-- Digital Assistant Role & Long-Press Power / Assist Trigger -->
             <intent-filter>
                 <action android:name="android.intent.action.ASSIST" />
+                <action android:name="android.intent.action.VOICE_COMMAND" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
 
-            <!-- Android Share Sheet Integration (Summarize / Ask AIRA about shared text) -->
+            <!-- Android Share Sheet Integration -->
             <intent-filter>
                 <action android:name="android.intent.action.SEND" />
                 <category android:name="android.intent.category.DEFAULT" />
@@ -70,7 +82,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Foreground Voice Conversation Service (User-controlled with explicit stop action) -->
+        <!-- Foreground Voice Conversation Service -->
         <service
             android:name=".service.AiraVoiceForegroundService"
             android:enabled="true"
@@ -83,6 +95,25 @@
             android:enabled="true"
             android:exported="false"
             android:foregroundServiceType="mediaProjection" />
+
+        <!-- Floating Live Operator HUD Service (Always-on-top status + 1-tap Red STOP button) -->
+        <service
+            android:name=".mobile.AiraFloatingOverlayService"
+            android:enabled="true"
+            android:exported="false"
+            android:foregroundServiceType="specialUse" />
+
+        <!-- Quick Settings Tile Service for 1-Tap Notification Shade Trigger -->
+        <service
+            android:name=".mobile.AiraQuickSettingsTileService"
+            android:exported="true"
+            android:icon="@drawable/ic_launcher_foreground"
+            android:label="@string/app_name"
+            android:permission="android.permission.BIND_QUICK_SETTINGS_TILE">
+            <intent-filter>
+                <action android:name="android.service.quicksettings.action.QS_TILE" />
+            </intent-filter>
+        </service>
 
         <!-- User-Authorized Accessibility Service for Human-Like Screen & App Operation -->
         <service
@@ -98,7 +129,7 @@
                 android:resource="@xml/aira_accessibility_service_config" />
         </service>
 
-        <!-- Optional Notification Listener (Only active when user explicitly grants Notification Access) -->
+        <!-- Optional Notification Listener -->
         <service
             android:name=".service.AiraNotificationListenerService"
             android:exported="true"
