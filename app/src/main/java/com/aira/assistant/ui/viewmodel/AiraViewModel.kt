@@ -7,21 +7,25 @@ import com.aira.assistant.ai.CompositeLlmRouter
 import com.aira.assistant.ai.ModelCatalogManager
 import com.aira.assistant.ai.local.LocalOnDeviceLlmEngine
 import com.aira.assistant.ai.network.LocalNetworkLlmEngine
+import com.aira.assistant.autonomous.AutonomousTaskManager
+import com.aira.assistant.autonomous.FileWorkspaceManager
+import com.aira.assistant.autonomous.TaskHistoryRepository
 import com.aira.assistant.core.AiraLogger
 import com.aira.assistant.core.NetworkConnectivityObserver
 import com.aira.assistant.core.SecurityPreferences
 import com.aira.assistant.data.repository.ConversationRepository
 import com.aira.assistant.data.repository.MemoryRepository
+import com.aira.assistant.domain.model.AgentPlan
 import com.aira.assistant.domain.model.AiModelSpec
 import com.aira.assistant.domain.model.AiraLanguage
-import com.aira.assistant.domain.model.AgentPlan
+import com.aira.assistant.domain.model.AutonomousTaskRecord
+import com.aira.assistant.domain.model.AutonomousTaskSubmission
 import com.aira.assistant.domain.model.ChatMessage
 import com.aira.assistant.domain.model.ConversationSession
 import com.aira.assistant.domain.model.DeviceHardwareProfile
 import com.aira.assistant.domain.model.MemoryCategory
 import com.aira.assistant.domain.model.MemoryItem
 import com.aira.assistant.domain.model.MessageRole
-import com.aira.assistant.domain.model.ToolExecutionStatus
 import com.aira.assistant.domain.model.VoiceState
 import com.aira.assistant.domain.model.VoiceTelemetry
 import com.aira.assistant.service.ScreenCaptureService
@@ -42,7 +46,9 @@ import kotlinx.coroutines.launch
  * Central MVVM ViewModel (`AiraViewModel`) coordinating:
  * - Central AI Orb state (`IDLE`, `LISTENING`, `THINKING`, `SPEAKING`, `INTERRUPTING`, `ERROR`)
  * - Full-Duplex Voice Conversation & Instant Barge-In
- * - Agent Planning & Tool Execution (with confirmation gate for sensitive actions)
+ * - Autonomous Task Execution Studio (`AutonomousTaskManager`) for Code-to-APK, Script-to-Video,
+ *   Text-to-Audio, and Self-Healing Code Repair
+ * - Agent Planning & Tool Execution
  * - Long-Term Memory & Conversation History persistence
  * - Screen Understanding context injection
  * - Model Catalog, Hardware Profiling & Privacy/Security Settings
@@ -54,6 +60,8 @@ class AiraViewModel(
     val conversationRepository: ConversationRepository = ConversationRepository(),
     val toolRegistry: AiraToolRegistry = AiraToolRegistry(),
     val connectivityObserver: NetworkConnectivityObserver = NetworkConnectivityObserver(),
+    val taskHistoryRepository: TaskHistoryRepository = TaskHistoryRepository(),
+    val fileWorkspaceManager: FileWorkspaceManager = FileWorkspaceManager(),
     sttEngineOverride: SttEngine? = null,
     ttsEngineOverride: TtsEngine? = null
 ) : ViewModel() {
@@ -69,6 +77,16 @@ class AiraViewModel(
     private val ttsEngine: TtsEngine = ttsEngineOverride ?: ModularStreamingTtsEngine(null)
 
     val agentOrchestrator = AgentOrchestrator(toolRegistry)
+
+    val autonomousTaskManager = AutonomousTaskManager(
+        scope = viewModelScope,
+        workspaceManager = fileWorkspaceManager,
+        taskHistoryRepository = taskHistoryRepository
+    )
+
+    val activeAutonomousTask: StateFlow<AutonomousTaskRecord?> = autonomousTaskManager.activeTask
+    val autonomousTaskHistory: StateFlow<List<AutonomousTaskRecord>> = taskHistoryRepository.observeTasks()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
     val voiceCoordinator = VoiceConversationCoordinator(
         scope = viewModelScope,
@@ -135,19 +153,29 @@ class AiraViewModel(
 
     private fun setupCoordinatorHooks() {
         voiceCoordinator.contextProvider = { userQuery ->
-            // 1. Extract implicit user memories if consented
             memoryRepository.extractAndStoreImplicitMemories(userQuery)
 
-            // 2. Check if the Agent Orchestrator plans any tool execution
             var toolOutputText: String? = null
-            val plan = agentOrchestrator.createPlanForUtterance(userQuery)
-            if (plan != null) {
-                if (plan.requiresUserConfirmation) {
-                    _pendingConfirmationPlan.value = plan
-                    toolOutputText = plan.confirmationMessage ?: "Please confirm before I run this sensitive tool."
-                } else {
-                    val results = agentOrchestrator.executePlan(plan, userConfirmed = true)
-                    toolOutputText = results.joinToString(" ") { it.outputText }
+            val lower = userQuery.lowercase()
+            // Route autonomous production requests directly to AutonomousTaskManager
+            if (lower.contains("make a video") || lower.contains("create a video") ||
+                lower.contains("30-second video") || lower.contains("generate voiceover") ||
+                lower.contains("build apk")
+            ) {
+                val record = autonomousTaskManager.runTaskPipelineSuspend(
+                    submission = AutonomousTaskSubmission(promptOrInstruction = userQuery)
+                )
+                toolOutputText = "Autonomous task '${record.category.title}' finished with status ${record.stage.displayLabel}. Outputs: ${record.outputFiles.joinToString(", ")}"
+            } else {
+                val plan = agentOrchestrator.createPlanForUtterance(userQuery)
+                if (plan != null) {
+                    if (plan.requiresUserConfirmation) {
+                        _pendingConfirmationPlan.value = plan
+                        toolOutputText = plan.confirmationMessage ?: "Please confirm before I run this sensitive tool."
+                    } else {
+                        val results = agentOrchestrator.executePlan(plan, userConfirmed = true)
+                        toolOutputText = results.joinToString(" ") { it.outputText }
+                    }
                 }
             }
 
@@ -186,12 +214,18 @@ class AiraViewModel(
         }
     }
 
-    /**
-     * Central AI Orb tap handler:
-     * - If `IDLE` or `ERROR`: starts listening.
-     * - If `SPEAKING` or `THINKING`: triggers instant Barge-In and transitions to `LISTENING`.
-     * - If `LISTENING`: stops listening and returns to `IDLE`.
-     */
+    fun submitAutonomousTask(submission: AutonomousTaskSubmission): String {
+        return autonomousTaskManager.submitAutonomousTask(submission)
+    }
+
+    fun cancelActiveAutonomousTask() {
+        autonomousTaskManager.cancelActiveTask()
+    }
+
+    fun approveWaitingAutonomousTask() {
+        autonomousTaskManager.approveWaitingTask()
+    }
+
     fun onOrbTapped() {
         when (voiceState.value) {
             VoiceState.IDLE, VoiceState.ERROR -> {

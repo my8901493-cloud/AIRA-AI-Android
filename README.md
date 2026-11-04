@@ -104,3 +104,21 @@ git remote add origin https://github.com/<your-username>/AIRA-AI-Android.git
 git push -u origin main
 ```
 GitHub Actions (`.github/workflows/android-build.yml`) will automatically run all unit tests, compile the C++ NDK library and Kotlin sources, and publish the installable `AIRA-AI-Debug-APK` artifact under the **Actions** tab.
+
+---
+
+## Autonomous Execution Engine (`com.aira.assistant.autonomous`)
+
+AIRA AI now includes a full **Autonomous Execution Engine** that accepts high-level objectives, source code, Android project ZIPs, video scripts, or narration text and independently executes the entire pipeline:
+
+`USER INPUT -> InputAnalyzer -> TaskClassifier -> PlanningEngine -> ToolDiscoveryEngine -> ToolSelectionEngine -> PermissionManager -> ExecutionEngine -> ResultValidator -> ErrorRecoveryEngine -> Final Delivery`
+
+### Modular Autonomous Components (`app/src/main/java/com/aira/assistant/autonomous/`)
+- `AutonomousTaskManager.kt`: Top-level orchestrator managing live progress stages (`Analyzing -> Planning -> Selecting Tools -> Executing -> Validating -> Completed`), checkpointing, approval gates, and safe cancellation.
+- `InputAnalyzer.kt` & `TaskClassifier.kt`: Automatically detects input formats, languages (`hi-IN`, `en-IN`), Android project structure, and syntax health without asking the user which tool to pick.
+- `ToolRegistry.kt`, `ToolDiscoveryEngine.kt`, `CostManager.kt`, & `ToolSelectionEngine.kt`: Verifies binary/SDK/hardware availability at runtime and ranks candidate tools across Quality (25%), Reliability (25%), Speed (15%), Cost (20% free-first), and Privacy (15% local-first).
+- `PlanningEngine.kt` & `ExecutionEngine.kt`: Builds multi-step workflow DAGs with parallel execution hints and saves persistent Room checkpoints (`AutonomousTaskEntity`) via `TaskHistoryRepository.kt`.
+- `CodeBuildAgent.kt`: Inspects Android/Kotlin/Java/C++ code, auto-repairs syntax/delimiter/import defects with versioned backups, runs local Gradle builds when `ANDROID_HOME` is present, or prepares/triggers GitHub Actions cloud APK builds.
+- `VideoProductionAgent.kt`: 6-Step Autonomous Script-to-Video Engine (Script Analysis & Storyboard -> Watermark-Free HD Visuals & Motion Graphics -> Segmented Voiceover -> Music & SFX with `-14dB` Sidechain Ducking -> H.264/AAC MP4 Composition in `16:9` & `9:16` with Subtitles -> Quality Gate).
+- `AudioProductionAgent.kt`: Synthesizes segmented female voiceover with breathing pauses, ambient score, transition chimes, sidechain ducking, and `-1.0 dBFS` peak normalization into `.wav` and `.mp3`.
+- `FileWorkspaceManager.kt`, `ResultValidator.kt`, & `ErrorRecoveryEngine.kt`: Enforces isolated task sandboxes, atomic `.tmp` staging writes, instant rollback on cancellation, bounded self-healing retries, and container header/stream validation.

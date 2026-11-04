@@ -83,3 +83,18 @@ data class ReminderEntity(
     val isFired: Boolean = false,
     val createdAtMs: Long = System.currentTimeMillis()
 )
+
+@Entity(tableName = "autonomous_tasks")
+data class AutonomousTaskEntity(
+    @PrimaryKey val taskId: String,
+    val title: String,
+    val inputType: String,
+    val category: String,
+    val stage: String,
+    val progressFraction: Float,
+    val serializedRecordJson: String,
+    val lastCompletedStepNumber: Int = 0,
+    val workspaceDirPath: String = "",
+    val createdAtMs: Long = System.currentTimeMillis(),
+    val updatedAtMs: Long = System.currentTimeMillis()
+)

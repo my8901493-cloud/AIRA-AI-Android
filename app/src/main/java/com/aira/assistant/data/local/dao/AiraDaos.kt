@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
+import com.aira.assistant.data.local.entity.AutonomousTaskEntity
 import com.aira.assistant.data.local.entity.ConversationEntity
 import com.aira.assistant.data.local.entity.MemoryEntity
 import com.aira.assistant.data.local.entity.MessageEntity
@@ -92,4 +93,22 @@ interface AssistantItemsDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertReminder(reminder: ReminderEntity): Long
+}
+
+@Dao
+interface AutonomousTaskDao {
+    @Query("SELECT * FROM autonomous_tasks ORDER BY updatedAtMs DESC")
+    fun observeAutonomousTasks(): Flow<List<AutonomousTaskEntity>>
+
+    @Query("SELECT * FROM autonomous_tasks ORDER BY updatedAtMs DESC")
+    suspend fun getAllAutonomousTasks(): List<AutonomousTaskEntity>
+
+    @Query("SELECT * FROM autonomous_tasks WHERE taskId = :taskId LIMIT 1")
+    suspend fun getTaskById(taskId: String): AutonomousTaskEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAutonomousTask(entity: AutonomousTaskEntity)
+
+    @Query("DELETE FROM autonomous_tasks WHERE taskId = :taskId")
+    suspend fun deleteAutonomousTask(taskId: String)
 }

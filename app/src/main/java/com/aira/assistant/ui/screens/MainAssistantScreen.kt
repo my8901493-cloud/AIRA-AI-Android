@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material.icons.filled.GraphicEq
 import androidx.compose.material.icons.filled.History
 import androidx.compose.material.icons.filled.Memory
@@ -63,19 +64,10 @@ import com.aira.assistant.ui.theme.AiraTextPrimary
 import com.aira.assistant.ui.theme.AiraTextSecondary
 import com.aira.assistant.ui.viewmodel.AiraViewModel
 
-/**
- * Primary Futuristic Screen for AIRA AI (`MainAssistantScreen`).
- *
- * Strictly adheres to the visual design specification:
- * - Dark premium theme with subtle purple-blue ambient lighting
- * - Large animated central AI orb reacting to `IDLE`, `LISTENING`, `THINKING`, `SPEAKING`, `INTERRUPTING`, `ERROR`
- * - Zero unnecessary text clutter underneath the central orb
- * - Glassmorphic top navigation (Online/Offline badge, Screen Sharing indicator, History, Memories, Settings)
- * - Bottom control dock (Microphone control, Continuous Voice toggle, Screen Control toggle, and optional quick text bar)
- */
 @Composable
 fun MainAssistantScreen(
     viewModel: AiraViewModel,
+    onNavigateToAutonomousStudio: () -> Unit,
     onNavigateToHistory: () -> Unit,
     onNavigateToMemories: () -> Unit,
     onNavigateToSettings: () -> Unit,
@@ -104,7 +96,6 @@ fun MainAssistantScreen(
                 )
             )
     ) {
-        // Side-edge glow when Screen Assistance (MediaProjection) is active
         ScreenSharingEdgeGlow(isActive = isScreenSharing)
 
         Column(
@@ -141,6 +132,13 @@ fun MainAssistantScreen(
                 }
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
+                    IconButton(onClick = onNavigateToAutonomousStudio) {
+                        Icon(
+                            imageVector = Icons.Default.AutoAwesome,
+                            contentDescription = "Autonomous Execution Studio",
+                            tint = AiraCyanGlow
+                        )
+                    }
                     IconButton(onClick = onNavigateToHistory) {
                         Icon(
                             imageVector = Icons.Default.History,
@@ -165,7 +163,6 @@ fun MainAssistantScreen(
                 }
             }
 
-            // 2. Active Screen-Sharing Pill (only visible when user enabled Screen Understanding)
             if (isScreenSharing) {
                 Surface(
                     shape = RoundedCornerShape(50),
@@ -198,7 +195,7 @@ fun MainAssistantScreen(
                 Spacer(modifier = Modifier.height(12.dp))
             }
 
-            // 3. Central Animated AI Orb (No unnecessary text underneath the orb)
+            // 3. Central Animated AI Orb (Zero text clutter underneath)
             Box(
                 modifier = Modifier.weight(1f),
                 contentAlignment = Alignment.Center
@@ -211,12 +208,11 @@ fun MainAssistantScreen(
                 )
             }
 
-            // 4. Bottom Glassmorphic Control Dock (Mic, Continuous Voice, Screen Control, Quick Input)
+            // 4. Bottom Glassmorphic Control Dock
             Column(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Optional compact input bar for silent environments
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -228,7 +224,7 @@ fun MainAssistantScreen(
                         onValueChange = { quickInput = it },
                         placeholder = {
                             Text(
-                                "Ask AIRA in Hindi, Hinglish, or English…",
+                                "Ask AIRA or assign an autonomous task…",
                                 color = AiraTextSecondary
                             )
                         },
@@ -253,7 +249,6 @@ fun MainAssistantScreen(
                     }
                 }
 
-                // Primary Voice & Screen Control Bar
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -264,7 +259,6 @@ fun MainAssistantScreen(
                     horizontalArrangement = Arrangement.SpaceEvenly,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Continuous Conversation Mode Toggle
                     IconButton(
                         onClick = { viewModel.setContinuousMode(!continuousMode) }
                     ) {
@@ -275,7 +269,6 @@ fun MainAssistantScreen(
                         )
                     }
 
-                    // Primary Microphone / Barge-In Control Button
                     FloatingActionButton(
                         onClick = onRequestMicPermissionAndToggle,
                         shape = CircleShape,
@@ -293,7 +286,6 @@ fun MainAssistantScreen(
                         )
                     }
 
-                    // Screen Control Toggle (MediaProjection)
                     IconButton(onClick = onToggleScreenSharing) {
                         Icon(
                             imageVector = if (isScreenSharing) Icons.Default.StopScreenShare else Icons.Default.ScreenShare,
@@ -305,7 +297,6 @@ fun MainAssistantScreen(
             }
         }
 
-        // Confirmation Dialog for Consequential / Sensitive Agent Actions
         pendingPlan?.let { plan ->
             AlertDialog(
                 onDismissRequest = { viewModel.dismissPendingAgentAction() },

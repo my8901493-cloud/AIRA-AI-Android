@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.aira.assistant.ui.screens.AutonomousTaskScreen
 import com.aira.assistant.ui.screens.ConversationHistoryScreen
 import com.aira.assistant.ui.screens.MainAssistantScreen
 import com.aira.assistant.ui.screens.MemoryManagerScreen
@@ -22,11 +23,18 @@ fun AiraNavHost(
         composable("main") {
             MainAssistantScreen(
                 viewModel = viewModel,
+                onNavigateToAutonomousStudio = { navController.navigate("autonomous") },
                 onNavigateToHistory = { navController.navigate("history") },
                 onNavigateToMemories = { navController.navigate("memories") },
                 onNavigateToSettings = { navController.navigate("settings") },
                 onRequestMicPermissionAndToggle = onRequestMicPermissionAndToggle,
                 onToggleScreenSharing = onToggleScreenSharing
+            )
+        }
+        composable("autonomous") {
+            AutonomousTaskScreen(
+                viewModel = viewModel,
+                onBack = { navController.popBackStack() }
             )
         }
         composable("history") {

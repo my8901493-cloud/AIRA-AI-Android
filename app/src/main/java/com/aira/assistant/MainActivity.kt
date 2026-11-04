@@ -13,6 +13,8 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.aira.assistant.ai.ModelCatalogManager
+import com.aira.assistant.autonomous.FileWorkspaceManager
+import com.aira.assistant.autonomous.TaskHistoryRepository
 import com.aira.assistant.core.NetworkConnectivityObserver
 import com.aira.assistant.core.SecurityPreferences
 import com.aira.assistant.data.repository.ConversationRepository
@@ -64,6 +66,8 @@ class MainActivity : ComponentActivity() {
             conversationRepository = ConversationRepository(db.conversationDao()),
             toolRegistry = AiraToolRegistry(this, db.assistantItemsDao()),
             connectivityObserver = NetworkConnectivityObserver(this),
+            taskHistoryRepository = TaskHistoryRepository(db.autonomousTaskDao()),
+            fileWorkspaceManager = FileWorkspaceManager(this),
             sttEngineOverride = ModularAndroidSttEngine(this),
             ttsEngineOverride = ModularStreamingTtsEngine(this)
         )
