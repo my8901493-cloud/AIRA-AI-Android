@@ -1,0 +1,45 @@
+# Built application files
+*.apk
+*.aab
+*.ap_
+*.dex
+
+# Files for the ART/Dalvik VM
+*.class
+
+# Generated files
+bin/
+gen/
+out/
+release/
+build/
+.gradle/
+.cxx/
+
+# Local configuration file (sdk path, etc)
+local.properties
+
+# Android Studio / IntelliJ
+*.iml
+.idea/
+.navigation/
+captures/
+.externalNativeBuild/
+
+# Keystores and Secrets (NEVER commit secrets)
+*.jks
+*.keystore
+secrets.properties
+google-services.json
+
+# Downloaded AI / Voice Models (large binaries managed at runtime)
+*.gguf
+*.bin
+*.onnx
+*.tflite
+app/src/main/assets/models/*.gguf
+app/src/main/assets/models/*.onnx
+
+# OS-specific files
+.DS_Store
+Thumbs.db

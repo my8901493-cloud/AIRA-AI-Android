@@ -1,0 +1,4 @@
+-keepattributes *Annotation*,SourceFile,LineNumberTable
+-keep class com.aira.assistant.ai.local.NativeBridge { *; }
+-keep class com.aira.assistant.domain.model.** { *; }
+-dontwarn okhttp3.**

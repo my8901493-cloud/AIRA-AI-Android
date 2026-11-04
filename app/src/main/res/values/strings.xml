@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">AIRA AI</string>
+    <string name="notification_listener_label">AIRA Notification Assistant</string>
+    <string name="voice_service_channel_name">AIRA Active Voice Session</string>
+    <string name="screen_service_channel_name">AIRA Screen Assistant</string>
+    <string name="reminder_channel_name">AIRA Reminders</string>
+    <string name="stop_listening">Stop Listening</string>
+    <string name="stop_screen_sharing">Stop Screen Sharing</string>
+</resources>
