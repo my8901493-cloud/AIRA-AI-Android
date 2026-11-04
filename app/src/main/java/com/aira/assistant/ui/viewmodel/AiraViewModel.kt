@@ -26,8 +26,10 @@ import com.aira.assistant.domain.model.DeviceHardwareProfile
 import com.aira.assistant.domain.model.MemoryCategory
 import com.aira.assistant.domain.model.MemoryItem
 import com.aira.assistant.domain.model.MessageRole
+import com.aira.assistant.domain.model.OperatorTaskExecutionRecord
 import com.aira.assistant.domain.model.VoiceState
 import com.aira.assistant.domain.model.VoiceTelemetry
+import com.aira.assistant.operator.WorkflowExecutionEngine
 import com.aira.assistant.service.ScreenCaptureService
 import com.aira.assistant.tools.AiraToolRegistry
 import com.aira.assistant.voice.VoiceConversationCoordinator
@@ -46,12 +48,11 @@ import kotlinx.coroutines.launch
  * Central MVVM ViewModel (`AiraViewModel`) coordinating:
  * - Central AI Orb state (`IDLE`, `LISTENING`, `THINKING`, `SPEAKING`, `INTERRUPTING`, `ERROR`)
  * - Full-Duplex Voice Conversation & Instant Barge-In
- * - Autonomous Task Execution Studio (`AutonomousTaskManager`) for Code-to-APK, Script-to-Video,
- *   Text-to-Audio, and Self-Healing Code Repair
- * - Agent Planning & Tool Execution
+ * - Real-World Autonomous Android Operator (`WorkflowExecutionEngine`) for Chrome/Website operation,
+ *   YouTube inspection, Installed Video/Audio Editor control, Free Tool Discovery, and Missing App Installation approval
+ * - Autonomous Task Execution Studio (`AutonomousTaskManager`)
  * - Long-Term Memory & Conversation History persistence
  * - Screen Understanding context injection
- * - Model Catalog, Hardware Profiling & Privacy/Security Settings
  */
 class AiraViewModel(
     val preferences: SecurityPreferences = SecurityPreferences(),
@@ -84,7 +85,14 @@ class AiraViewModel(
         taskHistoryRepository = taskHistoryRepository
     )
 
+    val operatorWorkflowEngine = WorkflowExecutionEngine(
+        workspaceManager = fileWorkspaceManager
+    )
+
     val activeAutonomousTask: StateFlow<AutonomousTaskRecord?> = autonomousTaskManager.activeTask
+    val activeOperatorRecord: StateFlow<OperatorTaskExecutionRecord?> = operatorWorkflowEngine.activeRecord
+    val operatorHistory: StateFlow<List<OperatorTaskExecutionRecord>> = operatorWorkflowEngine.executionHistoryRepository.records
+
     val autonomousTaskHistory: StateFlow<List<AutonomousTaskRecord>> = taskHistoryRepository.observeTasks()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), emptyList())
 
@@ -157,15 +165,13 @@ class AiraViewModel(
 
             var toolOutputText: String? = null
             val lower = userQuery.lowercase()
-            // Route autonomous production requests directly to AutonomousTaskManager
-            if (lower.contains("make a video") || lower.contains("create a video") ||
-                lower.contains("30-second video") || lower.contains("generate voiceover") ||
-                lower.contains("build apk")
+            if (lower.contains("chrome") || lower.contains("youtube") ||
+                lower.contains("editing app") || lower.contains("free tool") ||
+                lower.contains("make a video") || lower.contains("cinematic video") ||
+                lower.contains("build apk") || lower.contains("voiceover")
             ) {
-                val record = autonomousTaskManager.runTaskPipelineSuspend(
-                    submission = AutonomousTaskSubmission(promptOrInstruction = userQuery)
-                )
-                toolOutputText = "Autonomous task '${record.category.title}' finished with status ${record.stage.displayLabel}. Outputs: ${record.outputFiles.joinToString(", ")}"
+                val opRecord = operatorWorkflowEngine.executeGoal(userGoal = userQuery)
+                toolOutputText = "Operator [${opRecord.state.displayLabel}] via ${opRecord.selectedToolOrApp}: ${opRecord.verificationSummary}"
             } else {
                 val plan = agentOrchestrator.createPlanForUtterance(userQuery)
                 if (plan != null) {
@@ -215,14 +221,40 @@ class AiraViewModel(
     }
 
     fun submitAutonomousTask(submission: AutonomousTaskSubmission): String {
+        viewModelScope.launch {
+            operatorWorkflowEngine.executeGoal(
+                userGoal = submission.promptOrInstruction.ifBlank { submission.pastedCodeOrScript }
+            )
+        }
         return autonomousTaskManager.submitAutonomousTask(submission)
     }
 
+    fun executeRealWorldOperatorGoal(goal: String) {
+        viewModelScope.launch {
+            operatorWorkflowEngine.executeGoal(userGoal = goal)
+        }
+    }
+
+    fun emergencyStopAllOperations() {
+        operatorWorkflowEngine.cancelImmediately()
+        autonomousTaskManager.cancelActiveTask()
+    }
+
     fun cancelActiveAutonomousTask() {
+        operatorWorkflowEngine.cancelImmediately()
         autonomousTaskManager.cancelActiveTask()
     }
 
     fun approveWaitingAutonomousTask() {
+        val currentOp = activeOperatorRecord.value
+        if (currentOp != null) {
+            viewModelScope.launch {
+                operatorWorkflowEngine.executeGoal(
+                    userGoal = currentOp.userGoal,
+                    userApprovedPaidOrInstall = true
+                )
+            }
+        }
         autonomousTaskManager.approveWaitingTask()
     }
 

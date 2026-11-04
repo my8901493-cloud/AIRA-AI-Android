@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.AttachFile
 import androidx.compose.material.icons.filled.Cancel
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.StopCircle
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -27,7 +28,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -40,6 +40,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.aira.assistant.domain.model.AutonomousTaskStage
 import com.aira.assistant.domain.model.AutonomousTaskSubmission
+import com.aira.assistant.domain.model.OperatorExecutionState
 import com.aira.assistant.ui.theme.AiraBackgroundDark
 import com.aira.assistant.ui.theme.AiraBlueAccent
 import com.aira.assistant.ui.theme.AiraCyanGlow
@@ -52,16 +53,6 @@ import com.aira.assistant.ui.theme.AiraTextPrimary
 import com.aira.assistant.ui.theme.AiraTextSecondary
 import com.aira.assistant.ui.viewmodel.AiraViewModel
 
-/**
- * Autonomous Task Submission & Progress Execution Interface (`AutonomousTaskScreen`).
- *
- * Allows the user to:
- * - Type a natural-language objective (e.g., "Build APK from this project", "Make a 30s Hindi video from this script", "Generate a voiceover MP3", "Fix this broken Kotlin code").
- * - Paste source code or a full video/voiceover script.
- * - Attach project ZIPs or local files.
- * - Observe real progress stages (`Analyzing -> Planning -> Selecting Tools -> Executing -> Validating -> Completed`).
- * - Inspect automatic tool selection decisions, pause/cancel active execution safely, and view verified output deliverables.
- */
 @Composable
 fun AutonomousTaskScreen(
     viewModel: AiraViewModel,
@@ -69,6 +60,7 @@ fun AutonomousTaskScreen(
     onBack: () -> Unit
 ) {
     val activeTask by viewModel.activeAutonomousTask.collectAsState()
+    val operatorRecord by viewModel.activeOperatorRecord.collectAsState()
     val taskHistory by viewModel.autonomousTaskHistory.collectAsState()
 
     var objectiveText by remember { mutableStateOf("") }
@@ -98,15 +90,23 @@ fun AutonomousTaskScreen(
                         )
                     }
                     Text(
-                        text = "AIRA Autonomous Execution Studio",
+                        text = "AIRA Autonomous Operator & Studio",
                         style = MaterialTheme.typography.titleLarge,
                         color = AiraTextPrimary
                     )
                 }
+
+                // Emergency Stop Screen Control Button
+                OutlinedButton(
+                    onClick = { viewModel.emergencyStopAllOperations() }
+                ) {
+                    Icon(Icons.Default.StopCircle, contentDescription = null, tint = AiraErrorCoral)
+                    Text(" STOP SCREEN", color = AiraErrorCoral)
+                }
             }
         }
 
-        // 1. Task Submission Card
+        // 1. Goal & Task Submission Card
         item {
             Column(
                 modifier = Modifier
@@ -118,7 +118,7 @@ fun AutonomousTaskScreen(
                 verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Text(
-                    text = "Submit Any Objective, Script, Code, or Project",
+                    text = "Give AIRA Any Goal in Hindi, Hinglish, or English",
                     style = MaterialTheme.typography.titleMedium,
                     color = AiraCyanGlow
                 )
@@ -126,18 +126,18 @@ fun AutonomousTaskScreen(
                 OutlinedTextField(
                     value = objectiveText,
                     onValueChange = { objectiveText = it },
-                    label = { Text("What should AIRA accomplish?") },
-                    placeholder = { Text("e.g., Produce a 30s Hindi MP4 video / Build APK / Generate Voiceover MP3 / Fix broken code") },
+                    label = { Text("Goal (Chrome, YouTube, Video Editor, APK Build, Free Tool Search)") },
+                    placeholder = { Text("e.g., Chrome kholo aur is topic par research karo / Editing app kholo aur video edit karo") },
                     modifier = Modifier.fillMaxWidth()
                 )
 
                 OutlinedTextField(
                     value = codeOrScriptText,
                     onValueChange = { codeOrScriptText = it },
-                    label = { Text("Paste Script, Narration Text, or Source Code (Optional)") },
-                    placeholder = { Text("Paste Hindi/English video script, narration text, or Kotlin/Java/Python code here…") },
-                    minLines = 4,
-                    maxLines = 8,
+                    label = { Text("Optional Script, Narration Text, or Source Code") },
+                    placeholder = { Text("Paste Hindi/English script or code here…") },
+                    minLines = 3,
+                    maxLines = 7,
                     modifier = Modifier.fillMaxWidth()
                 )
 
@@ -148,7 +148,7 @@ fun AutonomousTaskScreen(
                 ) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         OutlinedButton(onClick = { videoAspect = if (videoAspect == "16:9") "9:16" else "16:9" }) {
-                            Text("Video Format: $videoAspect")
+                            Text("Format: $videoAspect")
                         }
                         OutlinedButton(
                             onClick = {
@@ -158,7 +158,7 @@ fun AutonomousTaskScreen(
                             }
                         ) {
                             Icon(Icons.Default.AttachFile, contentDescription = null)
-                            Text("Attach File/ZIP (${attachedFilePaths.size})")
+                            Text("Attach (${attachedFilePaths.size})")
                         }
                     }
 
@@ -177,13 +177,77 @@ fun AutonomousTaskScreen(
                         }
                     ) {
                         Icon(Icons.Default.PlayArrow, contentDescription = null)
-                        Text("Start Autonomous Execution")
+                        Text("Run Operator")
                     }
                 }
             }
         }
 
-        // 2. Live Progress Stage Stepper & Active Execution Monitor
+        // 2. Real-World Android Operator 13-State Monitor & Transparent Activity Log
+        operatorRecord?.let { op ->
+            item {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clip(RoundedCornerShape(18.dp))
+                        .background(AiraGlassSurface)
+                        .border(1.dp, AiraCyanGlow, RoundedCornerShape(18.dp))
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Android Operator State: ${op.state.displayLabel}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = if (op.state == OperatorExecutionState.COMPLETED) AiraOnlineEmerald else AiraCyanGlow
+                    )
+                    Text(
+                        text = "Selected Tool/App: ${op.selectedToolOrApp} (${op.selectionReason})",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AiraTextPrimary
+                    )
+                    Text(
+                        text = op.currentStepDescription,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = AiraTextSecondary
+                    )
+
+                    // Missing App Installation Approval Card
+                    op.pendingInstallProposal?.let { prop ->
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clip(RoundedCornerShape(12.dp))
+                                .border(1.dp, AiraErrorCoral, RoundedCornerShape(12.dp))
+                                .padding(12.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Text("Missing App Approval Required: ${prop.recommendedAppName}", color = AiraErrorCoral)
+                            Text("Why needed: ${prop.rationaleExplanation}", color = AiraTextPrimary)
+                            Text("Pricing: ${prop.pricingSummary} • Permissions: ${prop.requiredPermissionsSummary}", color = AiraTextSecondary)
+                            Text("Official Store Link: ${prop.officialStoreUri}", color = AiraBlueAccent)
+                            Button(onClick = { viewModel.approveWaitingAutonomousTask() }) {
+                                Text("Approve & Open Official Play Store")
+                            }
+                        }
+                    }
+
+                    // Transparent Operator Activity Log
+                    if (op.activityLog.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Text("Transparent Operator Activity Log:", style = MaterialTheme.typography.labelMedium, color = AiraBlueAccent)
+                        op.activityLog.takeLast(8).forEach { entry ->
+                            Text(
+                                text = "• [${entry.state.name}] ${entry.targetAppOrWebsite}: ${entry.actionPerformed} (${entry.verificationNote})",
+                                style = MaterialTheme.typography.labelMedium,
+                                color = AiraTextSecondary
+                            )
+                        }
+                    }
+                }
+            }
+        }
+
+        // 3. Autonomous Studio Step-by-Step Progress
         activeTask?.let { task ->
             item {
                 Column(
@@ -200,18 +264,11 @@ fun AutonomousTaskScreen(
                         horizontalArrangement = Arrangement.SpaceBetween,
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Text(
-                                text = "${task.category.title} • ${task.stage.displayLabel}",
-                                style = MaterialTheme.typography.titleMedium,
-                                color = if (task.stage == AutonomousTaskStage.COMPLETED) AiraOnlineEmerald else AiraCyanGlow
-                            )
-                            Text(
-                                text = "Analyzing → Planning → Selecting Tools → Executing → Validating → Completed",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = AiraTextSecondary
-                            )
-                        }
+                        Text(
+                            text = "${task.category.title} • ${task.stage.displayLabel}",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = if (task.stage == AutonomousTaskStage.COMPLETED) AiraOnlineEmerald else AiraCyanGlow
+                        )
                         if (!task.stage.isTerminal) {
                             IconButton(onClick = { viewModel.cancelActiveAutonomousTask() }) {
                                 Icon(
@@ -229,29 +286,6 @@ fun AutonomousTaskScreen(
                         color = AiraCyanGlow
                     )
 
-                    if (task.stage == AutonomousTaskStage.WAITING_APPROVAL) {
-                        Text(
-                            text = task.requiresApprovalReason ?: "Authorization required before proceeding.",
-                            color = AiraErrorCoral
-                        )
-                        Button(onClick = { viewModel.approveWaitingAutonomousTask() }) {
-                            Text("Approve & Continue")
-                        }
-                    }
-
-                    // Autonomous Tool Selection Decisions
-                    if (task.toolDecisions.isNotEmpty()) {
-                        Text("Autonomous Tool Selection:", style = MaterialTheme.typography.labelMedium, color = AiraBlueAccent)
-                        task.toolDecisions.forEach { dec ->
-                            Text(
-                                text = "• ${dec.capabilityRequired}: ${dec.selectionRationale}",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = AiraTextSecondary
-                            )
-                        }
-                    }
-
-                    // Step-by-Step Progress
                     task.steps.forEach { step ->
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -267,39 +301,21 @@ fun AutonomousTaskScreen(
                                 Icon(Icons.Default.CheckCircle, contentDescription = null, tint = AiraOnlineEmerald)
                             }
                         }
-                        if (step.logSummary.isNotBlank()) {
-                            Text(
-                                text = "   ↳ ${step.logSummary}",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = AiraTextSecondary
-                            )
-                        }
                     }
 
-                    // Generated Deliverables & Validation Report
                     if (task.outputFiles.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(6.dp))
                         Text("Verified Output Deliverables:", style = MaterialTheme.typography.titleMedium, color = AiraOnlineEmerald)
                         task.outputFiles.forEach { filePath ->
                             Text("✓ $filePath", style = MaterialTheme.typography.bodyMedium, color = AiraTextPrimary)
                         }
                     }
-
-                    task.validationReport?.let { valReport ->
-                        Text(
-                            text = "Quality Gate: ${if (valReport.passed) "PASSED" else "FAILED"} (${valReport.fileSizeBytes} bytes) • Checks: ${valReport.checksPerformed.entries.joinToString { "${it.key}=${it.value}" }}",
-                            style = MaterialTheme.typography.labelMedium,
-                            color = if (valReport.passed) AiraOnlineEmerald else AiraErrorCoral
-                        )
-                    }
                 }
             }
         }
 
-        // 3. Past Autonomous Tasks History
         if (taskHistory.isNotEmpty()) {
             item {
-                Text("Autonomous Task History (${taskHistory.size})", style = MaterialTheme.typography.titleMedium, color = AiraBlueAccent)
+                Text("Completed Task History (${taskHistory.size})", style = MaterialTheme.typography.titleMedium, color = AiraBlueAccent)
             }
             items(taskHistory) { item ->
                 Row(

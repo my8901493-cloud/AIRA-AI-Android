@@ -122,3 +122,19 @@ AIRA AI now includes a full **Autonomous Execution Engine** that accepts high-le
 - `VideoProductionAgent.kt`: 6-Step Autonomous Script-to-Video Engine (Script Analysis & Storyboard -> Watermark-Free HD Visuals & Motion Graphics -> Segmented Voiceover -> Music & SFX with `-14dB` Sidechain Ducking -> H.264/AAC MP4 Composition in `16:9` & `9:16` with Subtitles -> Quality Gate).
 - `AudioProductionAgent.kt`: Synthesizes segmented female voiceover with breathing pauses, ambient score, transition chimes, sidechain ducking, and `-1.0 dBFS` peak normalization into `.wav` and `.mp3`.
 - `FileWorkspaceManager.kt`, `ResultValidator.kt`, & `ErrorRecoveryEngine.kt`: Enforces isolated task sandboxes, atomic `.tmp` staging writes, instant rollback on cancellation, bounded self-healing retries, and container header/stream validation.
+
+---
+
+## Real-World Autonomous Android Operator (`com.aira.assistant.operator`)
+
+AIRA AI operates your Android device like a human assistant through user-authorized **AccessibilityService** (`AiraAccessibilityService`), **MediaProjection** (`ScreenCaptureService`), and **ML Kit OCR** fallback (`VisualUnderstandingEngine`).
+
+### Setup & Permission Instructions on Android Device
+1. **Enable Accessibility Screen Control**:
+   - Open Android **Settings -> Accessibility -> Installed apps -> AIRA Autonomous Screen Operator** and toggle **On**.
+   - This grants `AiraAccessibilityService` permission to inspect visible UI trees and perform authorized taps, scrolls, text entry, and app switching.
+   - You can halt screen operation at any instant by tapping the red **STOP SCREEN** button in AIRA or toggling off the service.
+2. **Enable Optional Screen OCR (`MediaProjection`)**:
+   - Tap the **Screen Share** icon in AIRA's bottom dock and accept the system projection prompt so `VisualUnderstandingEngine` can locate custom-rendered OpenGL/Canvas buttons via on-device Latin + Devanagari OCR when Accessibility nodes are absent.
+3. **Protected Controls & Safety**:
+   - AIRA automatically detects and pauses on CAPTCHAs, UPI/card payment PIN screens, password fields, biometric prompts, and app installation dialogs (`isProtectedSecurityScreen = true`), returning manual control to you.
