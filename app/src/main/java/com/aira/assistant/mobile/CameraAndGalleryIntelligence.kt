@@ -1,6 +1,5 @@
 package com.aira.assistant.mobile
 
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
@@ -12,17 +11,9 @@ data class IndexedGalleryDocument(
     val filePath: String,
     val fileName: String,
     val extractedOcrText: String,
-    val detectedCategory: String // BILL_INVOICE, ID_DOCUMENT, HANDWRITTEN_NOTE, SCREENSHOT
+    val detectedCategory: String
 )
 
-/**
- * Live Camera & Gallery Intelligence (`CameraAndGalleryIntelligence`).
- *
- * Capabilities:
- * - Indexes local screenshots, bills, and document photos by OCR text so the user can ask:
- *   *"Mera pichle mahine wala electricity bill ya screenshot dhundo"*.
- * - Converts one or more captured document images or text pages into a clean, multi-page PDF document on-device.
- */
 class CameraAndGalleryIntelligence {
 
     private val indexedDocuments = mutableListOf<IndexedGalleryDocument>()
@@ -47,7 +38,7 @@ class CameraAndGalleryIntelligence {
     }
 
     fun searchGalleryByNaturalQuery(query: String): List<IndexedGalleryDocument> {
-        val tokens = query.lowercase().split(Regex("[^a-z0-9\u0900-\u097F]+")).filter { it.length >= 2 }
+        val tokens = query.lowercase().split(Regex("[^a-z0-9]+")).filter { it.length >= 2 }
         if (tokens.isEmpty()) return indexedDocuments.toList()
 
         return indexedDocuments.filter { doc ->
@@ -56,12 +47,8 @@ class CameraAndGalleryIntelligence {
         }
     }
 
-    /**
-     * Generates a clean PDF document from scanned pages/text (`scanPagesToPdf`).
-     */
     fun scanPagesToPdf(pageTexts: List<String>, outputPdfFile: File): File {
         outputPdfFile.parentFile?.mkdirs()
-        // Try Android native PdfDocument first; fallback to standard PDF 1.4 writer in pure JVM tests
         val wroteAndroidPdf = runCatching {
             val pdf = PdfDocument()
             pageTexts.forEachIndexed { idx, text ->
@@ -85,10 +72,9 @@ class CameraAndGalleryIntelligence {
         }.getOrDefault(false)
 
         if (!wroteAndroidPdf) {
-            val body = pageTexts.joinToString("\n\n--- Page Break ---\n\n")
-            val minimalPdf = "%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n" +
-                "% Scanned Content: ${body.take(200).replace("
-", " ")}\n%%EOF\n"
+            val body = pageTexts.joinToString(" --- ")
+            val cleanPreview = body.take(200).replace('\n', ' ')
+            val minimalPdf = "%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n% Scanned Content: $cleanPreview\n%%EOF\n"
             outputPdfFile.writeText(minimalPdf, Charsets.UTF_8)
         }
         return outputPdfFile
