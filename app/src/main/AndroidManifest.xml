@@ -54,7 +54,7 @@
         android:supportsRtl="true"
         android:largeHeap="true"
         android:theme="@style/Theme.AIRA"
-        tools:targetApi="35">
+        tools:targetApi="34">
 
         <activity
             android:name=".MainActivity"
@@ -101,7 +101,7 @@
             android:name=".mobile.AiraFloatingOverlayService"
             android:enabled="true"
             android:exported="false"
-            android:foregroundServiceType="specialUse" />
+            android:foregroundServiceType="microphone" />
 
         <!-- Quick Settings Tile Service for 1-Tap Notification Shade Trigger -->
         <service
