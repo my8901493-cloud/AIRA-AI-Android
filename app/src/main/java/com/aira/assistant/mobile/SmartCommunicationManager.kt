@@ -30,7 +30,7 @@ data class PendingMessageReplyDraft(
 class SmartCommunicationManager {
 
     private var pendingDraft: PendingMessageReplyDraft? = null
-    private val otpRegex = Regex("\b\d{4,8}\b")
+    private val otpRegex = Regex("\\b\\d{4,8}\\b")
 
     fun analyzeNotifications(notifications: List<CapturedNotificationItem> = AiraNotificationListenerService.recentNotifications.value): List<ExtractedAlertSummary> {
         return notifications.map { item ->
@@ -70,6 +70,6 @@ class SmartCommunicationManager {
         val draft = pendingDraft ?: return Result.failure(IllegalStateException("No pending reply draft to send."))
         val confirmed = draft.copy(userConfirmedToSend = true)
         pendingDraft = null
-        return Result.success("Sent confirmed reply to ${confirmed.recipientName} on ${confirmed.targetApp}: "${confirmed.draftedReplyText}"")
+        return Result.success("Sent confirmed reply to ${confirmed.recipientName} on ${confirmed.targetApp}: \"${confirmed.draftedReplyText}\"")
     }
 }

@@ -66,7 +66,7 @@ class AudioProductionAgent(
         sentences.forEachIndexed { sIdx, sentence ->
             val startSample = sIdx * samplesPerSentence
             val activeSpeechSamples = (samplesPerSentence * 0.86f).toInt() // 14% natural breathing pause at end of sentence
-            val syllables = sentence.split(Regex("\s+")).flatMap { word ->
+            val syllables = sentence.split(Regex("\\s+")).flatMap { word ->
                 word.chunked(3).ifEmpty { listOf(word) }
             }.ifEmpty { listOf("aa") }
 

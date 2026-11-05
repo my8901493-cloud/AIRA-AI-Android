@@ -137,7 +137,7 @@ class LocalOnDeviceLlmEngine(
             return when (effectiveLang) {
                 AiraLanguage.HINDI -> "पिछली बात को आगे बढ़ाते हुए: ${lastAssistantMsg.content.take(140)} — इसके पीछे मुख्य कारण यह है कि हर स्टेप को मॉड्यूलर और सुरक्षित रखा जाए। क्या मैं कोई उदाहरण दूँ?"
                 AiraLanguage.HINGLISH -> "Abhi hum jis baare me baat kar rahe the (${lastUserMsg?.content?.take(60) ?: "pichla topic"}), usko thoda aur detail me samjhaun toh har step aapke control aur speed ke liye optimize kiya gaya hai."
-                AiraLanguage.ENGLISH -> "Building on what we were just discussing${lastUserMsg?.let { " about "${it.content.take(50)}"" } ?: ""}: the key idea is breaking it into clear, practical steps so you stay in full control. Which part should we dive deeper into?"
+                AiraLanguage.ENGLISH -> "Building on what we were just discussing${lastUserMsg?.let { " about \"${it.content.take(50)}\"" } ?: ""}: the key idea is breaking it into clear, practical steps so you stay in full control. Which part should we dive deeper into?"
             }
         }
 
@@ -160,23 +160,19 @@ class LocalOnDeviceLlmEngine(
 
         // 6. Coding / technical assistance
         if (lower.contains("code") || lower.contains("kotlin") || lower.contains("python") || lower.contains("function") || lower.contains("algorithm")) {
-            return "Here is a clean, modular approach for your request:
-" +
-                "1. Define a clear data contract with immutable state.
-" +
-                "2. Execute heavy or I/O work on a background dispatcher (`Dispatchers.Default` or `Dispatchers.IO`).
-" +
-                "3. Handle edge cases explicitly with structured `Result<T>` return types.
-" +
+            return "Here is a clean, modular approach for your request:\n" +
+                "1. Define a clear data contract with immutable state.\n" +
+                "2. Execute heavy or I/O work on a background dispatcher (`Dispatchers.Default` or `Dispatchers.IO`).\n" +
+                "3. Handle edge cases explicitly with structured `Result<T>` return types.\n" +
                 "Tell me the exact function signature or language you want, and I'll write the complete implementation for you."
         }
 
         // 7. Thoughtful conversational response honoring language & memory context
         val memoryHint = request.relevantMemories.firstOrNull()?.let { " (keeping in mind your note on ${it.subjectKey})" } ?: ""
         return when (effectiveLang) {
-            AiraLanguage.HINDI -> "मैंने आपकी बात ध्यान से सुनी — "$query"$memoryHint। मैं इसमें आपकी पूरी मदद कर सकती हूँ। क्या आप चाहते हैं कि मैं इसे आपके नोट्स या टास्क में सेव कर दूँ, या हम इस पर विस्तार से बात करें?"
-            AiraLanguage.HINGLISH -> "Samajh gayi! Aapne pucha: "$query"$memoryHint. Main ispar turant aapki help kar sakti hoon — chaahe isका step-by-step plan banana ho, note save karna ho, ya koi tool chalaana ho. Batao kaise aage badhein?"
-            AiraLanguage.ENGLISH -> "I hear you on "$query"$memoryHint. I can break that down step by step, save it to your notes or tasks, or run a device tool for you right now. How would you like to tackle it?"
+            AiraLanguage.HINDI -> "मैंने आपकी बात ध्यान से सुनी — \"$query\"$memoryHint। मैं इसमें आपकी पूरी मदद कर सकती हूँ। क्या आप चाहते हैं कि मैं इसे आपके नोट्स या टास्क में सेव कर दूँ, या हम इस पर विस्तार से बात करें?"
+            AiraLanguage.HINGLISH -> "Samajh gayi! Aapne pucha: \"$query\"$memoryHint. Main ispar turant aapki help kar sakti hoon — chaahe isका step-by-step plan banana ho, note save karna ho, ya koi tool chalaana ho. Batao kaise aage badhein?"
+            AiraLanguage.ENGLISH -> "I hear you on \"$query\"$memoryHint. I can break that down step by step, save it to your notes or tasks, or run a device tool for you right now. How would you like to tackle it?"
         }
     }
 

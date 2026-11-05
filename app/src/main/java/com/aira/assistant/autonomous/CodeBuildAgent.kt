@@ -87,19 +87,14 @@ class CodeBuildAgent(
         if (openBraces > closeBraces) {
             val diff = openBraces - closeBraces
             issues.add("Missing $diff closing curly brace '}'")
-            repaired = repaired.trimEnd() + "
-" + "}
-".repeat(diff)
+            repaired = repaired.trimEnd() + "\n" + "}\n".repeat(diff)
             repairs.add("Balanced block structure with $diff closing curly brace(s) '}'")
         }
 
         // 4. Detect & fix intentional division-by-zero or common syntax typos if present
-        if (repaired.contains("/ 0;") || repaired.contains("/ 0
-")) {
+        if (repaired.contains("/ 0;") || repaired.contains("/ 0\n")) {
             issues.add("Literal division by zero detected")
-            repaired = repaired.replace("/ 0;", "/ 1;").replace("/ 0
-", "/ 1
-")
+            repaired = repaired.replace("/ 0;", "/ 1;").replace("/ 0\n", "/ 1\n")
             repairs.add("Replaced literal division-by-zero divisor with safe non-zero denominator")
         }
 

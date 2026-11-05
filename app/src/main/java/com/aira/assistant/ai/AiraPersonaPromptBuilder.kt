@@ -34,8 +34,7 @@ object AiraPersonaPromptBuilder {
 
         val memoryBlock = if (memories.isNotEmpty()) {
             buildString {
-                appendLine("
-[Saved User Context & Long-Term Memory]")
+                appendLine("\n[Saved User Context & Long-Term Memory]")
                 memories.take(8).forEach { mem ->
                     appendLine("- (${mem.category.displayName}) ${mem.subjectKey}: ${mem.content}")
                 }
@@ -43,17 +42,11 @@ object AiraPersonaPromptBuilder {
         } else ""
 
         val screenBlock = if (!screenContext.isNullOrBlank()) {
-            "
-[Visible Android Screen Content (User Authorized)]
-$screenContext
-"
+            "\n[Visible Android Screen Content (User Authorized)]\n$screenContext\n"
         } else ""
 
         val toolBlock = if (!toolOutput.isNullOrBlank()) {
-            "
-[Verified System Tool Output]
-$toolOutput
-"
+            "\n[Verified System Tool Output]\n$toolOutput\n"
         } else ""
 
         return """

@@ -28,7 +28,7 @@ class UniversalClipboardAndConverter {
         )
         history.add(0, entry)
         if (history.size > 20) {
-            history.removeLast()
+            history.removeAt(history.lastIndex)
         }
         return entry
     }

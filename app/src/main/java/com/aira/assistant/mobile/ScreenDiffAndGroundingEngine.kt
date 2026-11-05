@@ -54,9 +54,8 @@ class ScreenDiffAndGroundingEngine {
 
     fun formatGroundedPromptView(marks: List<GroundedScreenMark>): String {
         if (marks.isEmpty()) return "[No interactive elements detected on screen]"
-        return marks.joinToString("
-") { m ->
-            "[${m.markIndex}] (${m.actionType}) "${m.label}" @ (${m.bounds.centerX}, ${m.bounds.centerY}) via ${m.sourceMethod}"
+        return marks.joinToString("\n") { m ->
+            "[${m.markIndex}] (${m.actionType}) \"${m.label}\" @ (${m.bounds.centerX}, ${m.bounds.centerY}) via ${m.sourceMethod}"
         }
     }
 

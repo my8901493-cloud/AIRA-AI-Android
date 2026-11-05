@@ -85,18 +85,10 @@ class CameraAndGalleryIntelligence {
         }.getOrDefault(false)
 
         if (!wroteAndroidPdf) {
-            val body = pageTexts.joinToString("
-
---- Page Break ---
-
-")
-            val minimalPdf = "%PDF-1.4
-1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj
-" +
+            val body = pageTexts.joinToString("\n\n--- Page Break ---\n\n")
+            val minimalPdf = "%PDF-1.4\n1 0 obj << /Type /Catalog /Pages 2 0 R >> endobj\n" +
                 "% Scanned Content: ${body.take(200).replace("
-", " ")}
-%%EOF
-"
+", " ")}\n%%EOF\n"
             outputPdfFile.writeText(minimalPdf, Charsets.UTF_8)
         }
         return outputPdfFile

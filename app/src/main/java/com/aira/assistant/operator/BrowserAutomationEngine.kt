@@ -19,10 +19,8 @@ class BrowserAutomationEngine(
             val extracted = snapshot.elements
                 .map { it.text.trim() }
                 .filter { it.length > 20 && !it.startsWith("https://") }
-                .joinToString("
-• ")
-            "Browser Research Summary for '$topic':
-• $extracted"
+                .joinToString("\n• ")
+            "Browser Research Summary for '$topic':\n• $extracted"
         }
     }
 

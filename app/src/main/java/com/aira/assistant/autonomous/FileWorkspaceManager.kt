@@ -110,7 +110,7 @@ class FileWorkspaceManager(
                 .onEnter { dir -> dir.name !in excludedDirs }
                 .filter { it.isFile }
                 .forEach { file ->
-                    val relPath = file.relativeTo(sourceDir.parentFile ?: sourceDir).path.replace("\", "/")
+                    val relPath = file.relativeTo(sourceDir.parentFile ?: sourceDir).path.replace("\\", "/")
                     val entry = ZipEntry(relPath)
                     zos.putNextEntry(entry)
                     FileInputStream(file).use { fis -> fis.copyTo(zos) }

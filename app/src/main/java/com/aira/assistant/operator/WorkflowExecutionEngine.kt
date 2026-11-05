@@ -224,8 +224,7 @@ class WorkflowExecutionEngine(
 
                         OperatorIntentType.MISSING_APP_DISCOVERY_AND_INSTALL -> {
                             val markerFile = File(outDir, "installed_app_ready_report.md")
-                            workspaceManager.writeFileAtomically(markerFile, "# App Installation Verified & Task Resumed
-Goal: $userGoal")
+                            workspaceManager.writeFileAtomically(markerFile, "# App Installation Verified & Task Resumed\nGoal: $userGoal")
                             producedFiles.add(markerFile)
                         }
                     }

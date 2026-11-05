@@ -70,8 +70,7 @@ class BrowserResearchAgent(
         val visibleText = snapshot.elements
             .map { it.text.trim() }
             .filter { it.length > 15 }
-            .joinToString("
-- ")
+            .joinToString("\n- ")
 
         val reportFile = File(outputDir, "youtube_video_summary.md")
         val markdown = buildString {

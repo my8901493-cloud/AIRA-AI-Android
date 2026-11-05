@@ -298,7 +298,7 @@ class AiraToolRegistry(
         return ToolExecutionResult(
             toolName = "set_alarm",
             status = ToolExecutionStatus.SUCCESS,
-            outputText = "I've set an alarm for $formattedTime labeled "$label".",
+            outputText = "I've set an alarm for $formattedTime labeled \"$label\".",
             structuredData = mapOf("hour" to hour.toString(), "minute" to minute.toString(), "label" to label),
             verified = true
         )
@@ -369,7 +369,7 @@ class AiraToolRegistry(
         return ToolExecutionResult(
             toolName = "create_reminder",
             status = ToolExecutionStatus.SUCCESS,
-            outputText = "Reminder saved for $minutes minutes from now: "$message".",
+            outputText = "Reminder saved for $minutes minutes from now: \"$message\".",
             structuredData = mapOf("reminderId" to id.toString(), "message" to message),
             verified = true
         )
@@ -381,7 +381,7 @@ class AiraToolRegistry(
             return ToolExecutionResult(
                 toolName = "open_application",
                 status = ToolExecutionStatus.SUCCESS,
-                outputText = "Validated launch request for application "$targetName".",
+                outputText = "Validated launch request for application \"$targetName\".",
                 structuredData = mapOf("appName" to targetName),
                 verified = true
             )
@@ -426,7 +426,7 @@ class AiraToolRegistry(
             ToolExecutionResult(
                 toolName = "open_application",
                 status = ToolExecutionStatus.EXECUTION_ERROR,
-                outputText = "I couldn't find an installed app matching "$targetName" on your device.",
+                outputText = "I couldn't find an installed app matching \"$targetName\" on your device.",
                 verified = false
             )
         }
@@ -469,7 +469,7 @@ class AiraToolRegistry(
         return ToolExecutionResult(
             toolName = "create_note",
             status = ToolExecutionStatus.SUCCESS,
-            outputText = "Saved note "$title": $content",
+            outputText = "Saved note \"$title\": $content",
             structuredData = mapOf("noteId" to id.toString(), "title" to title),
             verified = true
         )
@@ -518,7 +518,7 @@ class AiraToolRegistry(
                 ToolExecutionResult(
                     toolName = "manage_task",
                     status = ToolExecutionStatus.SUCCESS,
-                    outputText = "Added task "$title" to your list.",
+                    outputText = "Added task \"$title\" to your list.",
                     structuredData = mapOf("taskId" to id.toString(), "title" to title),
                     verified = true
                 )
@@ -534,14 +534,14 @@ class AiraToolRegistry(
                     ToolExecutionResult(
                         toolName = "manage_task",
                         status = ToolExecutionStatus.SUCCESS,
-                        outputText = "Marked task "${match.title}" as completed.",
+                        outputText = "Marked task \"${match.title}\" as completed.",
                         verified = true
                     )
                 } else {
                     ToolExecutionResult(
                         toolName = "manage_task",
                         status = ToolExecutionStatus.EXECUTION_ERROR,
-                        outputText = "Could not find an open task matching "$title".",
+                        outputText = "Could not find an open task matching \"$title\".",
                         verified = false
                     )
                 }
@@ -614,7 +614,7 @@ class AiraToolRegistry(
                     return ToolExecutionResult(
                         toolName = "get_weather",
                         status = ToolExecutionStatus.EXECUTION_ERROR,
-                        outputText = "I couldn't find coordinates for city "$city".",
+                        outputText = "I couldn't find coordinates for city \"$city\".",
                         verified = false
                     )
                 }
@@ -678,7 +678,7 @@ class AiraToolRegistry(
                     ToolExecutionResult(
                         toolName = "search_internet",
                         status = ToolExecutionStatus.SUCCESS,
-                        outputText = "Searched for "$query", but no instant summary snippet was returned.",
+                        outputText = "Searched for \"$query\", but no instant summary snippet was returned.",
                         verified = true
                     )
                 }
@@ -727,7 +727,7 @@ class AiraToolRegistry(
             ToolExecutionResult(
                 toolName = "search_local_files",
                 status = ToolExecutionStatus.SUCCESS,
-                outputText = "No local authorized files found matching "$keyword".",
+                outputText = "No local authorized files found matching \"$keyword\".",
                 verified = true
             )
         } else {

@@ -219,7 +219,7 @@ class AgentOrchestrator(
             val keyword = m.groupValues[1].trim()
             detectedIntent = "SEARCH_LOCAL_FILES"
             needsConfirmation = true
-            confirmationPrompt = "Allow AIRA to search local files for "$keyword"?"
+            confirmationPrompt = "Allow AIRA to search local files for \"$keyword\"?"
             steps.add(
                 AgentStep(
                     stepIndex = steps.size + 1,

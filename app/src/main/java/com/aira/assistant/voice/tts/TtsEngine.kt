@@ -211,8 +211,7 @@ class ModularStreamingTtsEngine(
 
     private fun findNaturalClauseBoundary(text: String): Int {
         if (text.length < 18) return -1
-        val strongEndings = charArrayOf('.', '!', '?', '।', '
-')
+        val strongEndings = charArrayOf('.', '!', '?', '।', '\n')
         for (i in text.indices) {
             if (i >= 14 && text[i] in strongEndings) {
                 return i
@@ -234,7 +233,7 @@ class ModularStreamingTtsEngine(
         if (firstChunkRecordedForTurn.compareAndSet(false, true)) {
             val latency = (System.currentTimeMillis() - requestStartMs).coerceAtLeast(1L)
             _firstAudioLatencyMs.value = latency
-            AiraLogger.i("TtsEngine", "First TTS audio chunk dispatched in ${latency}ms: "${cleanChunk.take(40)}"")
+            AiraLogger.i("TtsEngine", "First TTS audio chunk dispatched in ${latency}ms: \"${cleanChunk.take(40)}\"")
         }
 
         val utteranceId = "aira_tts_${UUID.randomUUID()}"

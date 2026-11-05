@@ -246,10 +246,7 @@ class ExecutionEngine(
                     val summaryFile = File(taskDir, "outputs/task_output_summary.md")
                     workspaceManager.writeFileAtomically(
                         summaryFile,
-                        "# Autonomous Task Deliverable
-
-Objective: ${submission.promptOrInstruction}
-Status: Completed and verified."
+                        "# Autonomous Task Deliverable\n\nObjective: ${submission.promptOrInstruction}\nStatus: Completed and verified."
                     )
                     val zipOut = File(taskDir, "outputs/autonomous_deliverable.zip")
                     workspaceManager.createZipArchive(File(taskDir, "outputs"), zipOut)
