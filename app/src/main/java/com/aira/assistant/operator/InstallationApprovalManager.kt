@@ -80,12 +80,12 @@ class InstallationApprovalManager(
                 val marketIntent = Intent(Intent.ACTION_VIEW, Uri.parse("market://details?id=${approved.packageName}")).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-                context.startActivity(marketIntent)
+                context?.startActivity(marketIntent)
             }.onFailure {
                 val webIntent = Intent(Intent.ACTION_VIEW, Uri.parse(playUri)).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
-                context.startActivity(webIntent)
+                context?.startActivity(webIntent)
             }
         }
 

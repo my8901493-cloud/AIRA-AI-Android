@@ -292,7 +292,7 @@ class AiraToolRegistry(
                 putExtra(AlarmClock.EXTRA_SKIP_UI, true)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            context.startActivity(intent)
+            context?.startActivity(intent)
         }
         val formattedTime = String.format(Locale.US, "%02d:%02d", hour, minute)
         return ToolExecutionResult(
@@ -323,7 +323,7 @@ class AiraToolRegistry(
                 putExtra(AlarmClock.EXTRA_SKIP_UI, true)
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
-            context.startActivity(intent)
+            context?.startActivity(intent)
         }
         val mins = seconds / 60
         val remSec = seconds % 60
@@ -351,7 +351,7 @@ class AiraToolRegistry(
 
         if (context != null) {
             runCatching {
-                val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+                val alarmManager = context!!.getSystemService(Context.ALARM_SERVICE) as AlarmManager
                 val intent = Intent(context, ReminderBroadcastReceiver::class.java).apply {
                     putExtra("reminder_id", id)
                     putExtra("reminder_message", message)
@@ -387,7 +387,7 @@ class AiraToolRegistry(
             )
         }
 
-        val pm = context.packageManager
+        val pm = context!!.packageManager
         val mainIntent = Intent(Intent.ACTION_MAIN, null).apply {
             addCategory(Intent.CATEGORY_LAUNCHER)
         }
@@ -405,7 +405,7 @@ class AiraToolRegistry(
                 addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             }
             if (launchIntent != null) {
-                context.startActivity(launchIntent)
+                context?.startActivity(launchIntent)
                 val appLabel = matched.loadLabel(pm).toString()
                 ToolExecutionResult(
                     toolName = "open_application",
