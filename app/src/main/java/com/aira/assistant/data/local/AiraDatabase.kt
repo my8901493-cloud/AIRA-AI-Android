@@ -27,7 +27,7 @@ import com.aira.assistant.data.local.entity.TaskEntity
         AutonomousTaskEntity::class
     ],
     version = 2,
-    exportSchema = true
+    exportSchema = false
 )
 abstract class AiraDatabase : RoomDatabase() {
     abstract fun conversationDao(): ConversationDao

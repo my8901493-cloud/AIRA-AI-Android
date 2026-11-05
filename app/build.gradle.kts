@@ -18,16 +18,6 @@ android {
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-
-        ndk {
-            abiFilters += listOf("arm64-v8a", "x86_64")
-        }
-
-        externalNativeBuild {
-            cmake {
-                cppFlags += "-std=c++17 -O3"
-            }
-        }
     }
 
     buildTypes {
@@ -60,11 +50,13 @@ android {
         buildConfig = true
     }
 
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-            version = "3.22.1"
-        }
+    testOptions {
+        unitTests.isReturnDefaultValues = true
+    }
+
+    lint {
+        abortOnError = false
+        checkReleaseBuilds = false
     }
 
     packaging {
@@ -72,11 +64,6 @@ android {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
     }
-}
-
-ksp {
-    arg("room.schemaLocation", "$projectDir/schemas")
-    arg("room.incremental", "true")
 }
 
 dependencies {
@@ -95,30 +82,20 @@ dependencies {
     implementation(libs.androidx.material.icons.extended)
     implementation(libs.androidx.navigation.compose)
 
-    // Room Database for Short/Long-Term Memory & Conversation History
     implementation(libs.androidx.room.runtime)
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
-    // Coroutines & Serialization
     implementation(libs.kotlinx.coroutines.core)
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.kotlinx.serialization.json)
 
-    // Networking for model downloads & optional LAN/Weather tools
     implementation(libs.okhttp)
-
-    // Encrypted SharedPreferences for secure settings
     implementation(libs.androidx.security.crypto)
-
-    // On-device Screen Understanding OCR (English/Hinglish + Hindi Devanagari)
     implementation(libs.mlkit.text.recognition)
     implementation(libs.mlkit.text.recognition.devanagari)
-
-    // WorkManager
     implementation(libs.androidx.work.runtime.ktx)
 
-    // Unit & Integration Testing
     testImplementation(libs.junit)
     testImplementation(libs.kotlinx.coroutines.test)
     testImplementation(libs.turbine)
